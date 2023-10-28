@@ -8,8 +8,25 @@
     }
 }
 @media screen and (max-width: 768px) {
-    .login-card{
-        max-width: 100% !important;
-        width: 100% !important;
-    }
+  .login-card{
+    width: 100%;
+    max-width: 600px;
+  }
+}
+.hero-content{
+    width: 100%;
+}
+
+.img-input:focus, .input:focus-visible {
+    /* outline: none; */
+    outline: 1px solid #FF725E !important;
+    background: #fff;
+    transition: all .3s;
+    border: none;
+}
+.input:focus-within {
+    outline-style: none;
+    outline-width: 0px;
+    outline-offset: 0px;
+    outline-color: transparent
 }
