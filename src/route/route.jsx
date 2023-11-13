@@ -6,6 +6,10 @@ import Home from '../pages/Home/Home';
 import Error from '../pages/Share/Error/Error';
 import SignUp from '../pages/Home/SignUp/SignUp';
 import Login from '../pages/Home/Login/Login';
+import Dashboard from '../Layout/Dashboard/Dashboard';
+import Settings from '../Layout/Dashboard/Settings/Settings';
+import Chat from '../Layout/Dashboard/Chat/Chat';
+import Profile from '../Layout/Dashboard/Profile/Profile';
 
 const router = createBrowserRouter([{
     path: '/',
@@ -14,7 +18,7 @@ const router = createBrowserRouter([{
     children: [
         {
             path: '/',
-            element: <Home />,            
+            element: <Home />,
         },
         {
             path: '/sign-up',
@@ -24,6 +28,29 @@ const router = createBrowserRouter([{
             path: '/login',
             element: <Login />
         }
+    ]
+},
+{
+    path: '/dashboard',
+    element: <Dashboard />,
+    errorElement: <Error />,
+    children: [
+        {
+            path: '/dashboard',
+            element: <Dashboard />
+        },
+        {
+            path: '/dashboard/chat',
+            element: <Chat />
+        },
+        {
+            path: '/dashboard/setting',
+            element: <Settings />
+        },
+        {
+            path: '/dashboard/profile',
+            element: <Profile />
+        },
     ]
 }]);
 export default router;

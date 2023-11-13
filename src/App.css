@@ -30,3 +30,14 @@
     outline-offset: 0px;
     outline-color: transparent
 }
+
+.avatar-btn{
+    background: transparent;
+    border-color: transparent;
+    padding: 0;
+    border: 0;
+}
+
+.avatar-btn:hover{
+    background: transparent;
+}

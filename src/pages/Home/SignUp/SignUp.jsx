@@ -1,15 +1,18 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import google from '../../../assets/google.png';
 import github from '../../../assets/github.png';
 import signUp from '../../../assets/Sign up.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { toast } from 'react-hot-toast'
 import '../../../App.css'
+import { AuthContext } from '../../../context/AuthProvider';
+import { GithubAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 
 const SignUp = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const [show, setShow] = useState(false);
     const [lowerValidate, setLowerValidate] = useState(false);
     const [upperValidate, setUpperValidate] = useState(false);
@@ -17,6 +20,17 @@ const SignUp = () => {
     const [specialValidate, setSpecialValidate] = useState(false);
     const [lengthValidate, setLengthValidate] = useState(false);
     const [isShowPassword, setIsShowPassword] = useState('');
+    const [imageFile, setImageFile] = useState();
+    const [loading, setLoading] = useState(false);
+    const { createUser, updateUser, signInWithGoogle, signInWithGithub } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const googleProvider = new GoogleAuthProvider();
+    const githubProvider = new GithubAuthProvider()
+
+    const handleImageFile = (e) => {
+        e.preventDefault();
+        setImageFile(URL.createObjectURL(e.target.files[0]))
+    }
 
     const handlePassword = (value) => {
         setIsShowPassword(value);
@@ -62,7 +76,50 @@ const SignUp = () => {
     }
 
     const handleSignUp = (data) => {
-        console.log(data)
+        setLoading(true)
+        const name = data?.name;
+        const email = data?.email;
+        const password = data?.password;
+        const image = data?.image[0];
+        const formData = new FormData();
+        formData.append('image', image);
+        const url = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMG_API_KEY}`
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data?.success === true) {
+                    createUser(email, password)
+                        .then((result) => {
+                            const user = result?.user;
+                            const photoUrl = data?.data?.url
+                            updateUser(name, photoUrl)
+                                .then(() => {
+                                    toast.success('Thank You For Sign Up');
+                                    reset();
+                                    navigate('/')
+                                    setLoading(false)
+                                })
+                                .catch((err) => { console.log(err.message); setLoading(false) })
+                        })
+                        .catch((err) => { console.error(err); setLoading(false) })
+                }
+            }).catch((err) => { console.log(err.message), setLoading(false) })
+    }
+
+    // --- SignIn with Google ---
+    const handleGoogleSignIn = (Provider) => {
+        signInWithGoogle(googleProvider)
+            .then((result) => { console.log(result?.user) })
+            .catch((err) => { console.log(err?.message) })
+    }
+    // --- SignIn with Google ---
+    const handleGithubSignIn = (Provider) => {
+        signInWithGithub(githubProvider)
+            .then((result) => { console.log(result?.user) })
+            .catch((err) => { console.log(err?.message) })
     }
     return (
 
@@ -106,13 +163,17 @@ const SignUp = () => {
                         </div>
                         {errors.email && <span role="alert" className='text-red-400'>{errors.email.message}</span>}
 
-                        <div>
-                            <label htmlFor="image" className="block text-sm text-gray-500 dark:text-gray-300">Image</label>
-                            <input type="file"
-                                accept='image/'
-                                className="block img-input w-full px-3 py-2 mt-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg file:bg-gray-200 file:text-gray-700 file:text-sm file:px-4 file:py-1 file:border-none file:rounded-full dark:file:bg-gray-800 dark:file:text-gray-200 dark:text-gray-300 placeholder-gray-400/70 dark:placeholder-gray-500 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-40 dark:border-gray-600 dark:bg-gray-900 dark:focus:border-blue-300"
-                                {...register('image', { required: "Image is Required" })}
-                            />
+                        <div className='img-box sm:flex-col md:flex-col lg:flex lg:flex-row  justify-between '>
+                            <div>
+                                <label htmlFor="image" className="block text-sm text-gray-500 dark:text-gray-300">Image</label>
+                                <input type="file"
+                                    accept='image/'
+                                    className="block img-input w-full px-3 py-2 mt-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg file:bg-gray-200 file:text-gray-700 file:text-sm file:px-4 file:py-1 file:border-none file:rounded-full"
+                                    {...register('image', { required: "Image is Required" })}
+                                    onChange={handleImageFile}
+                                />
+                            </div>
+                            {imageFile && <img className='image w-[100px] h-[100px] rounded-full' src={imageFile} />}
                         </div>
                         {errors.image && <span role="alert" className='text-red-400'>{errors.image.message}</span>}
 
@@ -136,10 +197,7 @@ const SignUp = () => {
                                 })}
                                 onChange={(e) => handlePassword(e.target.value)}
                             />
-                            <span onClick={handleShow} className='absolute right-[18px] bottom-[40%] cursor-pointer'>{show ? <FiEye /> : <FiEyeOff />}</span>
-                            <label className="label">
-                                <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
-                            </label>
+                            <span onClick={handleShow} className='absolute right-[18px] bottom-[20%] cursor-pointer'>{show ? <FiEye /> : <FiEyeOff />}</span>
                         </div>
 
                         {isShowPassword && (
@@ -154,17 +212,17 @@ const SignUp = () => {
                         {errors.password && <span role="alert" className='text-red-400'>{errors.password.message}</span>}
 
                         <div className="form-control mt-6">
-                            <button className="btn bg-[#FF725E] text-white hover:bg-[#ff6956]">Sign Up</button>
+                            <button className="btn bg-[#FF725E] text-white hover:bg-[#ff6956]">{loading ? <span>Loading...</span> : <span>Sign Up</span>}</button>
                         </div>
                     </form>
                     <div className='text-center -mt-4'>
                         <Link to='/'><p>Already have an account?</p></Link>
                     </div>
                     <div className='text-center flex justify-around items-center w-[260px] m-auto py-[25px] max-w-full'>
-                        <button className='flex justify-center items-center border w-[115px] border-[#DB4437] rounded py-2'>
+                        <button onClick={handleGoogleSignIn} className='flex justify-center items-center border w-[115px] border-[#DB4437] rounded py-2'>
                             <img className='google-img w-[20%] mr-2' src={google} alt='google' />Google
                         </button>
-                        <button className='flex justify-center items-center border w-[115px] border-[#171515] rounded py-2'>
+                        <button onClick={handleGithubSignIn} className='flex justify-center items-center border w-[115px] border-[#171515] rounded py-2'>
                             <img className='github-img w-[14%] mr-2' src={github} alt='github' />Github
                         </button>
                     </div>
