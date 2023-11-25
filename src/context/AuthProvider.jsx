@@ -51,6 +51,27 @@ const AuthProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, currentUser => {
             setUser(currentUser);
+            // console.log('current user on onAuthState: ', currentUser);
+            const user = {
+                name: currentUser?.displayName,
+                email: currentUser?.email,
+                image: currentUser?.photoURL
+            }
+            console.log(user)
+            if(currentUser && currentUser.email){
+                const url = `${import.meta.env.VITE_APP_URL}/user/${currentUser?.email}`;
+                fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify(user)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('user data', data)
+                })
+            }
             // setLoading(false)
         })
         return () => unsubscribe()

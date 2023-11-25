@@ -10,6 +10,7 @@ import Dashboard from '../Layout/Dashboard/Dashboard';
 import Settings from '../Layout/Dashboard/Settings/Settings';
 import Chat from '../Layout/Dashboard/Chat/Chat';
 import Profile from '../Layout/Dashboard/Profile/Profile';
+import Users from '../Layout/Dashboard/Users/Users';
 
 const router = createBrowserRouter([{
     path: '/',
@@ -37,7 +38,7 @@ const router = createBrowserRouter([{
     children: [
         {
             path: '/dashboard',
-            element: <Dashboard />
+            element: <Chat />
         },
         {
             path: '/dashboard/chat',
@@ -50,6 +51,10 @@ const router = createBrowserRouter([{
         {
             path: '/dashboard/profile',
             element: <Profile />
+        },
+        {
+            path: '/dashboard/users',
+            element: <Users />
         },
     ]
 }]);
